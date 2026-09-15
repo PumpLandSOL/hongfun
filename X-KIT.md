@@ -44,9 +44,9 @@ How a paired coin works:
 
 price = curve × (stock ÷ base)
 
-You lock the base at the print when you launch. Demand moves the curve. The tape moves the multiplier.
+Base locks at the print when you launch. Demand moves the curve. The tape moves the multiplier.
 
-BYD up 3% since you listed → your whole curve is up 3%. Market closed → index frozen. Open bell → everything gaps.
+BYD up 3% since you listed → your whole curve is up 3%. Market closed → index frozen. Open bell → it gaps.
 
 hongfun.xyz
 ```
@@ -67,10 +67,10 @@ hongfun.xyz/board
 18 names day one. Three exchanges.
 
 HKEX: Tencent, Alibaba, BYD, Meituan, Xiaomi, NIO, Li Auto, JD, SMIC, ICBC, Ping An, PetroChina
-Shanghai / Shenzhen: Moutai, CATL, Wuliangye, Ping An A
+SH/SZ: Moutai, CATL, Wuliangye, Ping An A
 US: PDD, BABA
 
-All priced live off the exchange tape. 开盘 · 午休 · 收盘 shown on every coin.
+Priced live off the tape. 开盘 · 午休 · 收盘 on every coin.
 
 hongfun.xyz
 ```
