@@ -1,4 +1,4 @@
-/* HONGBAO 红包 — warm paper, vermilion, gold. Chinese exchange convention: RED IS UP, green is down. */
+/* hong.fun 红 — warm paper, vermilion, gold. Chinese exchange convention: RED IS UP, green is down. */
 @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;700;900&family=Noto+Sans+SC:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 :root{--paper:#f7efe0;--paper2:#efe4cf;--ink:#1c1410;--ink2:#5a4a3a;--ink3:#9a8a76;--red:#c8102e;--red2:#a60d25;--gold:#c99a2e;--gold2:#e6c15a;--green:#1f7a4d;--line:#d9c9a8;--seal:#b3121f}
 *{box-sizing:border-box}
@@ -12,7 +12,7 @@ a{color:var(--red);text-decoration:none}
 /* frame + header */
 .frame{border-top:10px solid var(--red);border-bottom:4px solid var(--gold)}
 .nav{display:flex;justify-content:space-between;align-items:center;padding:16px 0;border-bottom:2px solid var(--ink)}
-.logo{display:flex;align-items:center;gap:12px;color:var(--ink);font-weight:700;letter-spacing:.14em;font-size:14px}
+.logo{display:flex;align-items:center;gap:10px;color:var(--ink);font-weight:700;letter-spacing:.02em;font-size:20px;font-family:"IBM Plex Mono",monospace}
 .logo .zi{font-family:'Noto Serif SC',serif;font-weight:900;font-size:30px;color:var(--red);line-height:1}
 .nav .links{display:flex;gap:18px;align-items:center;font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
 .nav .links a{color:var(--ink2)}.nav .links a.on{color:var(--red);border-bottom:2px solid var(--red)}

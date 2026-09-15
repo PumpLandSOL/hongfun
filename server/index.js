@@ -1,4 +1,4 @@
-// HONGBAO 红包 — the Chinese-stock launchpad on Robinhood Chain. Red is up.
+// hong.fun 红 — the Chinese-stock launchpad on Robinhood Chain. Red is up.
 // Every coin launched here is INDEXED to a Chinese stock (HK / Shanghai / Shenzhen / US ADR): its bonding-curve price
 // is multiplied by the underlying's move since launch, so a Moutai-coin inherits Moutai's tape on top of meme demand.
 // Bonding curve (constant product, virtual USDG reserves) → graduates at 8,888 USDG → "listed". 1% fee on every trade:
@@ -171,4 +171,4 @@ const server = http.createServer(async (req, res) => {
 });
 server.on('upgrade', (req, sock) => { const key = req.headers['sec-websocket-key']; if (!key) return sock.destroy(); const accept = crypto.createHash('sha1').update(key + '258EAFA5-E914-47DA-95CA-C5AB0DC85B11').digest('base64');
   sock.write('HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: ' + accept + '\r\n\r\n'); CLIENTS.add(sock); sock.on('close', () => CLIENTS.delete(sock)); sock.on('error', () => CLIENTS.delete(sock)); });
-server.listen(PORT, () => console.log('HONGBAO 红包 on :' + PORT + ' · ' + Object.keys(STOCKS).length + ' Chinese stocks · red is up'));
+server.listen(PORT, () => console.log('hong.fun 红 on :' + PORT + ' · ' + Object.keys(STOCKS).length + ' Chinese stocks · red is up'));

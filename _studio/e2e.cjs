@@ -1,4 +1,4 @@
-// HONGBAO E2E (DEV=1): tape, launch (dup ban), indexed quote, buy w/ envelope, sell, fee ledger, graduation.
+// hong.fun E2E (DEV=1): tape, launch (dup ban), indexed quote, buy w/ envelope, sell, fee ledger, graduation.
 const B = 'http://localhost:8202'; const A = '0x00000000000000000000000000000000000000a1', C = '0x00000000000000000000000000000000000000c2';
 const get = (u) => fetch(B + u).then((r) => r.json()); const post = (u, b) => fetch(B + u, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(b) }).then((r) => r.json());
 let fails = 0; const ok = (n, c, x) => { console.log((c ? 'PASS ' : 'FAIL ') + n + (x ? '  · ' + x : '')); if (!c) fails++; };
