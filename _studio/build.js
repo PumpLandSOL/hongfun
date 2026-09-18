@@ -70,7 +70,7 @@ wrap('hongfun-vs', 2400, 1350, `<div style="position:absolute;left:150px;top:100
 console.log('built 6');
 
 // PONS launch: initial awareness on an established Robinhood Chain pad vs a brand-new one
-const PONS = [['Buyers on day one', 'the pad's existing holders and feed', 'zero · you bring everyone'], ['Discovery', 'listed in the pad's board and rankings', 'a link you have to push'], ['Liquidity', 'the pad's curve and graduation route', 'seeded from scratch'], ['Trust', 'a launcher people already used', 'an unproven contract'], ['Chain', 'Robinhood Chain, same as hong.fun', 'Robinhood Chain'], ['What it costs', 'the token launches where the crowd is', 'awareness before the product exists']];
+const PONS = [['Buyers on day one', 'holders and feed already on the pad', 'zero · you bring everyone'], ['Discovery', 'listed on the board and rankings', 'a link you have to push'], ['Liquidity', 'a curve and graduation route in place', 'seeded from scratch'], ['Trust', 'a launcher people already used', 'an unproven contract'], ['Chain', 'Robinhood Chain, same as hong.fun', 'Robinhood Chain'], ['What it costs', 'the token launches where the crowd is', 'awareness before the product exists']];
 wrap('hongfun-pons', 2400, 1350, `<div style="position:absolute;left:150px;top:100px">${logo()}</div><div class="k" style="position:absolute;right:150px;top:126px">WHY $HONG LAUNCHED ON PONS</div>
   <div class="serif" style="position:absolute;left:150px;top:210px;font-size:88px;line-height:1">Launch the token <span class="red">where the crowd is.</span> Build the pad after.</div>
   <div style="position:absolute;left:150px;right:150px;top:400px">
