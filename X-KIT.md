@@ -13,6 +13,7 @@
 | the names | hongfun-names.png | 2400×1350 |
 | vs pump.fun | hongfun-vs.png | 2400×1350 |
 | hype video | hongfun-hype-10s.mp4 | 10s 1280×720 30fps |
+| why PONS | hongfun-pons.png | 2400×1350 |
 
 Regenerate: `node _studio/build.js && node _studio/render.js` · video `node _studio/hype-video.cjs`
 
@@ -97,3 +98,14 @@ Coins are indexed to the stock, not shares of it. Prices come straight off the t
 ```
 
 ⚠ Voice: never "yield", never "guaranteed", never imply ownership of the stock.
+
+## Why $HONG launched on PONS · attach hongfun-pons.png
+```
+Why did $HONG launch on PONS and not our own pad?
+
+A token needs buyers on day one. A brand-new launchpad has none.
+
+PONS already had the holders, the feed and the board on Robinhood Chain. We launched where the crowd was, then opened hong.fun on that awareness.
+
+hongfun.xyz
+```

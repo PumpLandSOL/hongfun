@@ -13,7 +13,7 @@ const DESKTOP = require('path').join(__dirname, '..', 'brand'); require('fs').mk
 const CHROME = 'C:/Program Files/Google/Chrome/Application/chrome.exe';
 
 const SIZES = {
-  'hongfun-pfp': [2000, 2000], 'hongfun-how': [2400, 1350], 'hongfun-names': [2400, 1350], 'hongfun-vs': [2400, 1350],
+  'hongfun-pfp': [2000, 2000], 'hongfun-how': [2400, 1350], 'hongfun-names': [2400, 1350], 'hongfun-vs': [2400, 1350], 'hongfun-pons': [2400, 1350],
   'hongfun-banner': [3000, 1000],
   'hongfun-keyart': [2400, 1350],
   'wage-howitworks': [2400, 1350],

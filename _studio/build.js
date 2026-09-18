@@ -68,3 +68,13 @@ wrap('hongfun-vs', 2400, 1350, `<div style="position:absolute;left:150px;top:100
   </div>
   <div class="mono" style="position:absolute;left:150px;bottom:80px;font-size:30px;color:#c8102e">hongfun.xyz</div><div class="mono dim" style="position:absolute;right:150px;bottom:80px;font-size:26px">$HONG · Robinhood Chain</div>`);
 console.log('built 6');
+
+// PONS launch: initial awareness on an established Robinhood Chain pad vs a brand-new one
+const PONS = [['Buyers on day one', 'the pad's existing holders and feed', 'zero · you bring everyone'], ['Discovery', 'listed in the pad's board and rankings', 'a link you have to push'], ['Liquidity', 'the pad's curve and graduation route', 'seeded from scratch'], ['Trust', 'a launcher people already used', 'an unproven contract'], ['Chain', 'Robinhood Chain, same as hong.fun', 'Robinhood Chain'], ['What it costs', 'the token launches where the crowd is', 'awareness before the product exists']];
+wrap('hongfun-pons', 2400, 1350, `<div style="position:absolute;left:150px;top:100px">${logo()}</div><div class="k" style="position:absolute;right:150px;top:126px">WHY $HONG LAUNCHED ON PONS</div>
+  <div class="serif" style="position:absolute;left:150px;top:210px;font-size:88px;line-height:1">Launch the token <span class="red">where the crowd is.</span> Build the pad after.</div>
+  <div style="position:absolute;left:150px;right:150px;top:400px">
+    <div style="display:grid;grid-template-columns:.9fr 1.1fr 1.1fr;padding:14px 26px;border-bottom:4px solid #1c1410" class="k"><span></span><span style="color:#c8102e">$HONG on PONS</span><span>a brand-new pad</span></div>
+    ${PONS.map((r) => `<div style="display:grid;grid-template-columns:.9fr 1.1fr 1.1fr;padding:20px 26px;border-bottom:2px solid #d9c9a8;font-size:31px;align-items:center;gap:20px"><span style="font-weight:700">${r[0]}</span><span style="color:#1f7a4d;font-weight:500">${r[1]}</span><span class="dim">${r[2]}</span></div>`).join('')}
+  </div>
+  <div class="mono" style="position:absolute;left:150px;bottom:80px;font-size:30px;color:#c8102e">hongfun.xyz</div><div class="mono dim" style="position:absolute;right:150px;bottom:80px;font-size:26px">$HONG · launched on PONS · Robinhood Chain</div>`);
