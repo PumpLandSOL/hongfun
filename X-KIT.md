@@ -93,7 +93,7 @@ hongfun.xyz
 
 **Reply under 1**
 ```
-Coins are not shares. Ledgers are simulated, prices are real. $HONG is what half of every fee burns. Not financial advice.
+Coins are indexed to the stock, not shares of it. Prices come straight off the tape. Half of every fee burns $HONG. Leveraged curves can go down; size accordingly.
 ```
 
 ⚠ Voice: never "yield", never "guaranteed", never imply ownership of the stock.
