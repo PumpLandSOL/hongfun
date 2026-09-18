@@ -14,6 +14,7 @@
 | vs pump.fun | hongfun-vs.png | 2400×1350 |
 | hype video | hongfun-hype-10s.mp4 | 10s 1280×720 30fps |
 | why PONS | hongfun-pons.png | 2400×1350 |
+| product demo | hongfun-demo.mp4 | 22s 1280×720 30fps · pick → launch → buy + envelope → tape moves curve → fee burns $HONG → graduation |
 
 Regenerate: `node _studio/build.js && node _studio/render.js` · video `node _studio/hype-video.cjs`
 
@@ -106,6 +107,17 @@ Why did $HONG launch on PONS and not our own pad?
 A token needs buyers on day one. A brand-new launchpad has none.
 
 PONS already had the holders, the feed and the board on Robinhood Chain. We launched where the crowd was, then opened hong.fun on that awareness.
+
+hongfun.xyz
+```
+
+## Product demo · attach hongfun-demo.mp4
+```
+22 seconds, the whole pad:
+
+pick BYD → launch a coin paired to it → base locks at the live print → first buy opens a red envelope → BYD moves +3.1%, your curve moves +3.1% → 1% fee, half buys $HONG and burns it → 8,888 USDG raised, it graduates.
+
+Every trade burns $HONG. Red is up.
 
 hongfun.xyz
 ```
