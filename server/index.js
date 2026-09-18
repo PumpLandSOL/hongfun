@@ -3,15 +3,22 @@
 // is multiplied by the underlying's move since launch, so a Moutai-coin inherits Moutai's tape on top of meme demand.
 // Bonding curve (constant product, virtual USDG reserves) → graduates at 8,888 USDG → "listed". 1% fee on every trade:
 // half buys & burns $HONG, half fills the red-envelope pool. First 88 buyers of every coin open a red envelope (random
-// bonus tokens, hash-seeded). Ledgers are simulated (no custody), prices are real (Yahoo chart API, 15 s). Dependency-free Node ≥18.
+// bonus tokens, hash-seeded). Practice ledger (1,000 USDG) + Live ledger funded with real USDG on Robinhood Chain; prices are real (Yahoo chart API, 15 s). Dependency-free Node ≥18.
 'use strict';
 const http = require('http'), fs = require('fs'), path = require('path'), crypto = require('crypto');
 const PORT = +(process.env.PORT || 8202);
 const ROOT = path.join(__dirname, '..'), CLIENT = path.join(ROOT, 'client');
 const DATA_PATH = process.env.DATA_PATH || path.join(ROOT, 'data.json');
 const MINT = process.env.HONG_MINT || '';
+// ---- LIVE ledger: real USDG on Robinhood Chain ----
+const CHAIN = { id: 4663, hex: '0x1237', name: 'Robinhood Chain', rpc: process.env.CHAIN_RPC || 'https://rpc.mainnet.chain.robinhood.com', explorer: 'https://explorer.mainnet.chain.robinhood.com' };
+const USDG = { addr: (process.env.USDG_ADDR || '0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168').toLowerCase(), dec: 6 };
+const TREASURY = (process.env.TREASURY || '').toLowerCase();   // wallet that receives live USDG deposits and pays withdrawals
+const MIN_DEPOSIT = +(process.env.MIN_DEPOSIT || 10);            // USDG
+const ADMIN_KEY = process.env.ADMIN_KEY || '';
+const TRANSFER_TOPIC = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
 const P = {
-  START_USDG: 1000,            // paper USDG per wallet (simulated ledger)
+  START_USDG: 1000,            // practice USDG per wallet
   V_USDG: 3000, V_TOK: 1_073_000_000, SUPPLY: 1_000_000_000,   // virtual reserves (pump-style) · 1B supply
   GRADUATE: 8888,              // USDG raised → listed
   FEE: 0.01, FEE_BURN: 0.5,    // 1% per trade · 50% → $HONG buyback & burn, 50% → red-envelope pool
@@ -69,7 +76,10 @@ let db = { coins: {}, users: {}, trades: [], seq: 1, stats: { launches: 0, trade
 try { db = Object.assign(db, JSON.parse(fs.readFileSync(DATA_PATH, 'utf8'))); } catch (e) {}
 let DIRTY = false; const dirty = () => { DIRTY = true; };
 setInterval(() => { if (DIRTY) { DIRTY = false; try { fs.writeFileSync(DATA_PATH, JSON.stringify(db)); } catch (e) {} } }, 2500);
-function user(w) { w = w.toLowerCase(); if (!db.users[w]) { db.users[w] = { wallet: w, usdg: P.START_USDG, bags: {}, envelopes: [], launched: [], t: now() }; dirty(); } return db.users[w]; }
+function user(w) { w = w.toLowerCase(); if (!db.users[w]) { db.users[w] = { wallet: w, usdg: P.START_USDG, live: 0, bags: {}, envelopes: [], launched: [], t: now() }; dirty(); } const u = db.users[w]; if (u.live == null) u.live = 0; return u; }
+const MODES = { practice: 'usdg', live: 'live' };
+const modeOf = (m) => (m === 'live' ? 'live' : 'practice');
+const coinMode = (c) => c.mode || 'practice';
 
 // ---------- hand-rolled WS ----------
 const CLIENTS = new Set();
@@ -89,23 +99,24 @@ function sellQuote(c, tok) { const idx = index(c); const k = c.vUsdg * c.vTok; c
 function fee(usd) { const burn = usd * P.FEE_BURN, env = usd - burn; db.stats.fees = r2(db.stats.fees + usd); db.stats.burnUsd = r2(db.stats.burnUsd + burn); if (HONG_PRICE > 0) db.stats.burnHong = r2(db.stats.burnHong + burn / HONG_PRICE); db.stats.envelopeUsd = r2(db.stats.envelopeUsd + env); }
 
 function launch(w, d) {
-  const u = user(w); const stock = d.stock; if (!STOCKS[stock]) throw 'pick a listed Chinese stock';
+  const u = user(w); const mode = modeOf(d.mode); if (mode === 'live' && !TREASURY) throw 'live launches open when the treasury is published'; const stock = d.stock; if (!STOCKS[stock]) throw 'pick a listed Chinese stock';
   const q = PX[stock]; if (!(q && q.px > 0)) throw 'tape warming for ' + stock + ' — try again in a few seconds';
   const ticker = String(d.ticker || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, P.MAX_TICKER); if (ticker.length < 2) throw 'ticker 2–8 chars';
-  if (Object.values(db.coins).some((c) => c.ticker === ticker)) throw 'ticker taken — duplicates are banned';
+  if (Object.values(db.coins).some((c) => c.ticker === ticker && coinMode(c) === mode)) throw 'ticker taken — duplicates are banned';
   const name = String(d.name || '').trim().slice(0, 32); if (name.length < 2) throw 'name 2–32 chars';
   const emoji = String(d.emoji || '🧧').slice(0, 4); const desc = String(d.desc || '').trim().slice(0, 240);
-  const id = ticker.toLowerCase();
-  const c = { id, ticker, name, emoji, desc, stock, stockName: STOCKS[stock].name, zh: STOCKS[stock].zh, ex: STOCKS[stock].ex, ccy: STOCKS[stock].ccy, px0: q.px, creator: w, t: now(),
+  const id = (mode === 'live' ? 'live:' : '') + ticker.toLowerCase();
+  const c = { id, mode, ticker, name, emoji, desc, stock, stockName: STOCKS[stock].name, zh: STOCKS[stock].zh, ex: STOCKS[stock].ex, ccy: STOCKS[stock].ccy, px0: q.px, creator: w, t: now(),
     vUsdg: P.V_USDG, vTok: P.V_TOK, sold: 0, raised: 0, holders: {}, buyers: 0, envelopes: [], envelopePool: P.SUPPLY * P.HONGBAO_POOL, listed: false, listedAt: 0, vol: 0, trades: 0, hist: [] };
   db.coins[id] = c; u.launched.push(id); db.stats.launches++; dirty();
   cast({ type: 'launch', coin: pub(c) }); return pub(c);
 }
-function buy(w, id, usdg) {
+function buy(w, id, usdg, mode) {
   const u = user(w); const c = db.coins[id]; if (!c) throw 'no such coin'; if (c.listed) throw c.ticker + ' has graduated — trade it on the DEX';
-  usdg = +usdg; if (!(usdg >= P.MIN_BUY)) throw 'min ' + P.MIN_BUY + ' USDG'; if (u.usdg < usdg) throw 'not enough USDG on ledger';
+  mode = modeOf(mode); if (coinMode(c) !== mode) throw 'this coin trades on the ' + coinMode(c) + ' board — switch mode'; const L = MODES[mode];
+  usdg = +usdg; if (!(usdg >= P.MIN_BUY)) throw 'min ' + P.MIN_BUY + ' USDG'; if (u[L] < usdg) throw 'not enough USDG on your ' + mode + ' ledger';
   const qt = buyQuote(c, usdg); if (qt.tokOut > c.vTok * 0.5) throw 'too large for the curve';
-  u.usdg = r2(u.usdg - usdg); c.vUsdg += qt.uIn; c.vTok -= qt.tokOut; c.sold += qt.tokOut; c.raised = r2(c.raised + usdg * (1 - P.FEE));
+  u[L] = r2(u[L] - usdg); c.vUsdg += qt.uIn; c.vTok -= qt.tokOut; c.sold += qt.tokOut; c.raised = r2(c.raised + usdg * (1 - P.FEE));
   const first = !c.holders[w]; c.holders[w] = r6((c.holders[w] || 0) + qt.tokOut); u.bags[id] = r6((u.bags[id] || 0) + qt.tokOut);
   fee(qt.fee); c.vol = r2(c.vol + usdg); c.trades++; db.stats.trades++; db.stats.volume = r2(db.stats.volume + usdg);
   let envelope = null;
@@ -113,20 +124,46 @@ function buy(w, id, usdg) {
     let amt = Math.min(c.envelopePool, P.SUPPLY * P.HONGBAO_POOL * share); if (c.buyers % 8 === 0) amt = Math.min(c.envelopePool, amt * 1.88);
     c.envelopePool -= amt; c.holders[w] = r6(c.holders[w] + amt); u.bags[id] = r6(u.bags[id] + amt); envelope = { n: c.buyers, amt: r6(amt), usd: r2(amt * price(c)), lucky: c.buyers % 8 === 0 };
     c.envelopes.push({ w, ...envelope, t: now() }); u.envelopes.push({ coin: id, ...envelope, t: now() }); db.stats.envelopes++; }
-  const tr = { id: db.seq++, coin: id, ticker: c.ticker, side: 'buy', w, usdg, tok: r6(qt.tokOut), px: price(c), idx: qt.idx, t: now(), envelope };
+  const tr = { id: db.seq++, coin: id, mode, ticker: c.ticker, side: 'buy', w, usdg, tok: r6(qt.tokOut), px: price(c), idx: qt.idx, t: now(), envelope };
   db.trades.unshift(tr); if (db.trades.length > 500) db.trades.pop(); c.hist.push({ t: tr.t, px: tr.px }); if (c.hist.length > 400) c.hist.shift();
   if (c.raised >= P.GRADUATE && !c.listed) { c.listed = true; c.listedAt = now(); db.stats.graduated++; cast({ type: 'listed', coin: pub(c) }); }
   dirty(); cast({ type: 'trade', trade: tr, coin: pub(c) }); return { trade: tr, coin: pub(c), me: me(w) };
 }
-function sell(w, id, tok) {
+function sell(w, id, tok, mode) {
   const u = user(w); const c = db.coins[id]; if (!c) throw 'no such coin'; if (c.listed) throw c.ticker + ' has graduated — trade it on the DEX';
+  mode = modeOf(mode); if (coinMode(c) !== mode) throw 'this coin trades on the ' + coinMode(c) + ' board — switch mode'; const L = MODES[mode];
   tok = Math.min(+tok, u.bags[id] || 0); if (!(tok > 0)) throw 'nothing to sell';
   const qt = sellQuote(c, tok); u.bags[id] = r6(u.bags[id] - tok); c.holders[w] = r6((c.holders[w] || 0) - tok); if (c.holders[w] <= 0) delete c.holders[w];
-  c.vUsdg -= qt.uOut; c.vTok += tok; c.sold -= tok; c.raised = r2(Math.max(0, c.raised - qt.net)); u.usdg = r2(u.usdg + qt.net);
+  c.vUsdg -= qt.uOut; c.vTok += tok; c.sold -= tok; c.raised = r2(Math.max(0, c.raised - qt.net)); u[L] = r2(u[L] + qt.net);
   fee(qt.fee); c.vol = r2(c.vol + qt.gross); c.trades++; db.stats.trades++; db.stats.volume = r2(db.stats.volume + qt.gross);
-  const tr = { id: db.seq++, coin: id, ticker: c.ticker, side: 'sell', w, usdg: r2(qt.net), tok: r6(tok), px: price(c), idx: qt.idx, t: now() };
+  const tr = { id: db.seq++, coin: id, mode, ticker: c.ticker, side: 'sell', w, usdg: r2(qt.net), tok: r6(tok), px: price(c), idx: qt.idx, t: now() };
   db.trades.unshift(tr); if (db.trades.length > 500) db.trades.pop(); c.hist.push({ t: tr.t, px: tr.px }); if (c.hist.length > 400) c.hist.shift();
   dirty(); cast({ type: 'trade', trade: tr, coin: pub(c) }); return { trade: tr, coin: pub(c), me: me(w) };
+}
+
+// ---------- LIVE: USDG deposits on Robinhood Chain ----------
+if (!db.txs) db.txs = {}; if (!db.queue) db.queue = []; if (!db.treasuryIn) db.treasuryIn = { usdg: 0, n: 0 };
+async function rpc(method, params) { const r = await fetch(CHAIN.rpc, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }) }).then((x) => x.json()); if (r.error) throw new Error(r.error.message); return r.result; }
+const TCHAIN = { ok: false, block: 0, treasuryUsdg: 0, lastRead: 0 };
+async function pollTreasury() { if (!TREASURY) return; try { TCHAIN.block = Number(BigInt(await rpc('eth_blockNumber', []))); const h = await rpc('eth_call', [{ to: USDG.addr, data: '0x70a08231' + TREASURY.replace('0x', '').padStart(64, '0') }, 'latest']); TCHAIN.treasuryUsdg = Number(BigInt(h)) / 10 ** USDG.dec; TCHAIN.ok = true; TCHAIN.lastRead = now(); } catch (e) { TCHAIN.ok = false; } }
+pollTreasury(); setInterval(pollTreasury, 30000);
+async function creditDeposit(w, txHash) {
+  if (!TREASURY) throw 'live deposits are not open yet';
+  if (!/^0x[a-fA-F0-9]{64}$/.test(txHash || '')) throw 'paste the transaction hash';
+  txHash = txHash.toLowerCase(); if (db.txs[txHash]) throw 'already credited';
+  const rc = await rpc('eth_getTransactionReceipt', [txHash]); if (!rc) throw 'pending — try again in a few seconds'; if (rc.status !== '0x1') throw 'transaction reverted';
+  const pad = (a) => '0x' + a.replace('0x', '').toLowerCase().padStart(64, '0');
+  const log = (rc.logs || []).find((l) => (l.address || '').toLowerCase() === USDG.addr && l.topics && l.topics[0] === TRANSFER_TOPIC && l.topics[1] === pad(w) && l.topics[2] === pad(TREASURY));
+  if (!log) throw 'no USDG transfer from your wallet to the treasury in this transaction';
+  const amt = Number(BigInt(log.data)) / 10 ** USDG.dec; if (!(amt > 0)) throw 'no USDG value'; if (amt < MIN_DEPOSIT) throw 'minimum deposit is ' + MIN_DEPOSIT + ' USDG';
+  const u = user(w); u.live = r2(u.live + amt); u.deposited = r2((u.deposited || 0) + amt);
+  db.txs[txHash] = { w, amt, block: Number(BigInt(rc.blockNumber)), ts: now() }; db.treasuryIn.usdg = r2(db.treasuryIn.usdg + amt); db.treasuryIn.n++; dirty();
+  return { ok: true, amt, tx: txHash, block: db.txs[txHash].block };
+}
+function requestWithdraw(w, amount) {
+  const u = user(w); amount = r2(+amount); if (!(amount >= 1)) throw 'minimum withdrawal is 1 USDG'; if (u.live < amount) throw 'not enough free USDG on your live ledger (sell first)';
+  u.live = r2(u.live - amount); u.withdrawn = r2((u.withdrawn || 0) + amount);
+  const q = { id: 'w' + crypto.randomBytes(5).toString('hex'), wallet: w, amt: amount, status: 'queued', ts: now(), paidTx: null, paidAt: null }; db.queue.unshift(q); if (db.queue.length > 500) db.queue.pop(); dirty(); return q;
 }
 
 // ---------- $HONG price (DexScreener) ----------
@@ -135,14 +172,16 @@ async function pollHong() { if (!MINT) return; try { const r = await fetch('http
 pollHong(); setInterval(pollHong, 60000);
 
 // ---------- projections ----------
-function pub(c) { const q = PX[c.stock] || {}; const idx = index(c); const pxNow = price(c);
-  return { id: c.id, ticker: c.ticker, name: c.name, emoji: c.emoji, desc: c.desc, stock: c.stock, stockName: c.stockName, zh: c.zh, ex: c.ex, ccy: c.ccy, session: session(c.ex), creator: c.creator, t: c.t,
+function pub(c) { const q = PX[c.stock] || {}; const idx = index(c); const pxNow = price(c); const mode = coinMode(c);
+  return { id: c.id, mode, ticker: c.ticker, name: c.name, emoji: c.emoji, desc: c.desc, stock: c.stock, stockName: c.stockName, zh: c.zh, ex: c.ex, ccy: c.ccy, session: session(c.ex), creator: c.creator, t: c.t,
     px0: c.px0, stockPx: q.px || 0, stockChg: q.prevClose ? r2((q.px / q.prevClose - 1) * 100) : 0, idx: r6(idx), idxPct: r2((idx - 1) * 100),
     price: pxNow, curvePx: curvePx(c), mcap: r2(mcap(c)), raised: c.raised, progress: Math.min(1, c.raised / P.GRADUATE), graduate: P.GRADUATE, listed: c.listed, listedAt: c.listedAt,
     holders: Object.keys(c.holders).length, buyers: c.buyers, envelopesLeft: Math.max(0, P.HONGBAO_N - c.buyers), envelopePool: r6(c.envelopePool), vol: c.vol, trades: c.trades, hist: c.hist.slice(-120) }; }
-function me(w) { const u = user(w); const bags = Object.entries(u.bags).filter(([, n]) => n > 0).map(([id, n]) => { const c = db.coins[id]; return { id, ticker: c.ticker, emoji: c.emoji, stock: c.stock, tok: n, value: r2(n * price(c)), pct: r2(n / P.SUPPLY * 100) }; });
-  return { wallet: w, usdg: u.usdg, bags, nav: r2(u.usdg + bags.reduce((a, b) => a + b.value, 0)), envelopes: u.envelopes.slice(-20).reverse(), launched: u.launched }; }
-function board() { return Object.values(db.coins).map(pub).sort((a, b) => (b.listed - a.listed) || b.vol - a.vol); }
+function me(w) { const u = user(w); const bags = Object.entries(u.bags).filter(([id, n]) => n > 0 && db.coins[id]).map(([id, n]) => { const c = db.coins[id]; return { id, mode: coinMode(c), ticker: c.ticker, emoji: c.emoji, stock: c.stock, tok: n, value: r2(n * price(c)), pct: r2(n / P.SUPPLY * 100) }; });
+  const val = (m) => bags.filter((b) => b.mode === m).reduce((a, b) => a + b.value, 0);
+  const queue = db.queue.filter((q) => q.wallet === w).slice(0, 10);
+  return { wallet: w, usdg: u.usdg, live: u.live, bags, nav: r2(u.usdg + val('practice')), navLive: r2(u.live + val('live')), deposited: u.deposited || 0, withdrawn: u.withdrawn || 0, queue, envelopes: u.envelopes.slice(-20).reverse(), launched: u.launched }; }
+function board(mode) { mode = modeOf(mode); return Object.values(db.coins).filter((c) => coinMode(c) === mode).map(pub).sort((a, b) => (b.listed - a.listed) || b.vol - a.vol); }
 function tape() { return Object.entries(STOCKS).map(([sym, s]) => { const q = PX[sym] || {}; return { sym, ...s, px: q.px || 0, chg: q.prevClose ? r2((q.px / q.prevClose - 1) * 100) : 0, session: session(s.ex), coins: Object.values(db.coins).filter((c) => c.stock === sym).length }; }); }
 
 // ---------- http ----------
@@ -151,16 +190,22 @@ const json = (res, c, o) => { res.writeHead(c, { 'content-type': 'application/js
 const body = (req) => new Promise((res) => { const c = []; req.on('data', (d) => { c.push(d); if (Buffer.concat(c).length > 1e5) req.destroy(); }); req.on('end', () => { try { res(JSON.parse(Buffer.concat(c).toString() || '{}')); } catch (e) { res({}); } }); });
 const server = http.createServer(async (req, res) => {
   const u = new URL(req.url, 'http://x'); const p = u.pathname;
-  if (p === '/api/config') return json(res, 200, { token: 'HONG', mint: MINT, hongPrice: HONG_PRICE, chainId: 4663, ok: PRICE_OK, params: { supply: P.SUPPLY, graduate: P.GRADUATE, fee: P.FEE, feeBurn: P.FEE_BURN, hongbaoPool: P.HONGBAO_POOL, hongbaoN: P.HONGBAO_N, startUsdg: P.START_USDG } });
+  if (p === '/api/config') return json(res, 200, { token: 'HONG', mint: MINT, live: !!TREASURY, treasury: TREASURY || null, usdg: USDG.addr, minDeposit: MIN_DEPOSIT, chain: CHAIN, hongPrice: HONG_PRICE, chainId: 4663, ok: PRICE_OK, params: { supply: P.SUPPLY, graduate: P.GRADUATE, fee: P.FEE, feeBurn: P.FEE_BURN, hongbaoPool: P.HONGBAO_POOL, hongbaoN: P.HONGBAO_N, startUsdg: P.START_USDG } });
   if (p === '/api/tape') return json(res, 200, { ok: PRICE_OK, stocks: tape() });
-  if (p === '/api/board') return json(res, 200, { ok: PRICE_OK, coins: board(), stats: db.stats, trades: db.trades.slice(0, 40), hongPrice: HONG_PRICE });
+  if (p === '/api/live') return json(res, 200, { open: !!TREASURY, treasury: TREASURY || null, usdg: USDG.addr, minDeposit: MIN_DEPOSIT, chain: { ...CHAIN, ...TCHAIN }, deposited: db.treasuryIn.usdg, deposits: db.treasuryIn.n, queued: db.queue.filter((q) => q.status === 'queued').length, queuedUsd: r2(db.queue.filter((q) => q.status === 'queued').reduce((a, q) => a + q.amt, 0)) });
+  if (p === '/api/admin/queue') { if (!ADMIN_KEY || u.searchParams.get('key') !== ADMIN_KEY) return json(res, 403, { error: 'no' }); return json(res, 200, { queue: db.queue, deposits: db.txs }); }
+  if (p === '/api/board') { const mode = modeOf(u.searchParams.get('mode')); return json(res, 200, { ok: PRICE_OK, mode, coins: board(mode), stats: db.stats, trades: db.trades.filter((t) => modeOf(t.mode) === mode).slice(0, 40), hongPrice: HONG_PRICE }); }
   if (p === '/api/coin') { const c = db.coins[(u.searchParams.get('id') || '').toLowerCase()]; if (!c) return json(res, 404, { error: 'no such coin' }); return json(res, 200, { coin: pub(c), trades: db.trades.filter((t) => t.coin === c.id).slice(0, 60), envelopes: c.envelopes.slice(-20).reverse(), top: Object.entries(c.holders).sort((a, b) => b[1] - a[1]).slice(0, 10).map(([w, n]) => ({ w, tok: n, pct: r2(n / P.SUPPLY * 100) })) }); }
   if (p === '/api/quote') { const c = db.coins[(u.searchParams.get('id') || '').toLowerCase()]; if (!c) return json(res, 404, { error: 'no such coin' }); const side = u.searchParams.get('side'), amt = +u.searchParams.get('amount') || 0; return json(res, 200, side === 'sell' ? sellQuote(c, amt) : buyQuote(c, amt)); }
   if (p === '/api/me') { const w = (u.searchParams.get('wallet') || '').toLowerCase(); if (!isEvm(w)) return json(res, 400, { error: 'wallet' }); return json(res, 200, me(w)); }
   if (req.method === 'POST' && p.startsWith('/api/')) {
     const d = await body(req); const w = (d.wallet || '').toLowerCase(); if (!isEvm(w)) return json(res, 200, { error: 'connect a wallet first' });
     try { let r;
-      if (p === '/api/launch') r = launch(w, d); else if (p === '/api/buy') r = buy(w, d.id, d.amount); else if (p === '/api/sell') r = sell(w, d.id, d.amount);
+      if (p === '/api/launch') r = launch(w, d); else if (p === '/api/buy') r = buy(w, d.id, d.amount, d.mode); else if (p === '/api/sell') r = sell(w, d.id, d.amount, d.mode);
+      else if (p === '/api/deposit') { const x = await creditDeposit(w, d.tx); r = Object.assign(x, { me: me(w) }); }
+      else if (p === '/api/withdraw') { const q = requestWithdraw(w, d.amount); r = { queued: q, me: me(w) }; }
+      else if (p === '/api/admin/paid') { if (!ADMIN_KEY || d.key !== ADMIN_KEY) throw 'no'; const q = db.queue.find((x) => x.id === d.id); if (!q) throw 'no such request'; q.status = 'paid'; q.paidTx = d.tx || null; q.paidAt = now(); dirty(); r = { q }; }
+      else if (p === '/api/dev/live' && process.env.DEV === '1') { const x = user(w); const amt = +d.amount || 100; x.live = r2(x.live + amt); x.deposited = r2((x.deposited || 0) + amt); dirty(); r = me(w); }
       else if (p === '/api/dev/faucet' && process.env.DEV === '1') { const x = user(w); x.usdg = r2(x.usdg + (+d.amount || 1000)); dirty(); r = me(w); }
       else return json(res, 404, { error: 'unknown' });
       return json(res, 200, { ok: true, r }); } catch (e) { return json(res, 200, { error: String(e) }); }

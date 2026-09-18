@@ -3,4 +3,4 @@
 Launch a coin on Robinhood Chain that is **indexed to a Chinese stock** (HKEX, Shanghai, Shenzhen, US ADRs). Bonding-curve price × the underlying's move since launch. First 88 buyers open a red envelope. 1% fee: half burns **$HONG**, half fills the envelope pool. Graduates at 8,888 USDG.
 
 Dependency-free Node ≥18. `node server/index.js` → :8202. `/` landing · `/board` the pad · `/docs` rules. Live: hongfun.xyz
-Env: `PORT` `DATA_PATH` `HONG_MINT` · `DEV=1` enables `/api/dev/faucet`. Prices: Yahoo chart API. Ledgers simulated, prices real. Not financial advice.
+Env: `PORT` `DATA_PATH` `HONG_MINT` · `DEV=1` enables `/api/dev/faucet`. Prices: Yahoo chart API. Practice ledger (1,000 USDG) and Live ledger funded with USDG on Robinhood Chain (TREASURY, MIN_DEPOSIT, ADMIN_KEY env; deposits verified from the USDG Transfer event). Prices real.

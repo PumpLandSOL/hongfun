@@ -2,8 +2,8 @@
 <title>hong.fun 红 — the rules</title>
 <link rel="stylesheet" href="/hong.css">
 <style>h1{font-family:'Noto Serif SC',serif;font-weight:900;font-size:36px;margin:26px 0 4px}h2{font-family:'Noto Serif SC',serif;font-weight:700;font-size:20px;margin:28px 0 8px;border-bottom:1px solid var(--line);padding-bottom:4px}h2 .zi{color:var(--red);margin-right:8px}p,li{color:var(--ink2);font-size:14.5px;max-width:820px}.eq{background:#fffaf0;border:1px solid var(--line);border-left:3px solid var(--red);padding:12px 16px;font-family:'IBM Plex Mono',monospace;font-size:13px;white-space:pre;overflow-x:auto;margin:10px 0}code{background:#fffaf0;border:1px solid var(--line);padding:1px 6px;font-family:'IBM Plex Mono',monospace;font-size:12.5px}</style></head><body class="frame"><div class="wrap">
-  <nav class="nav"><a class="logo" href="/"><span class="zi">红</span>hong.fun</a><div class="links"><a href="/board">The Board</a><a class="on" href="/docs">Rules</a><a href="https://x.com/hongdotfun" target="_blank" rel="noopener">X</a></div></nav>
-  <h1>The rules · 规则</h1><p class="tiny">Rev. 1 · Robinhood Chain · red is up</p>
+  <nav class="nav"><a class="logo" href="/"><span class="zi">红</span>hong.fun</a><div class="links"><a href="/board">The Board</a><a class="on" href="/docs">Rules</a><a href="https://x.com/HongFunPad" target="_blank" rel="noopener">X</a></div></nav>
+  <h1>The rules · 规则</h1><p class="tiny">Rev. 2 · Robinhood Chain · Practice and Live ledgers · red is up</p>
 
   <h2><span class="zi">一</span>Pairing</h2>
   <p>Every coin on the pad is launched against one underlying from the listed set: Tencent, Alibaba, BYD, Meituan, Xiaomi, NIO, Li Auto, JD.com, SMIC, ICBC, Ping An and PetroChina on HKEX; Kweichow Moutai, Ping An A and Wuliangye on Shanghai and Shenzhen; CATL on Shenzhen; PDD and the Alibaba ADR in the US. At launch the underlying's live print is recorded as the coin's <b>index base</b>. The base never changes.</p>
@@ -14,7 +14,7 @@ index       = stock_now / stock_at_launch   read every 15 s from the exchange ta
 price       = curve_price × index
 buy:  usdg_in × 0.99 / index → into the curve → tokens out by x·y = k
 sell: tokens in → curve → usdg_out × index × 0.99</div>
-  <p>Demand moves the curve. The stock moves the multiplier. A coin paired to BYD at 79.05 HKD trades at 1.10× its curve when BYD prints 86.96. The index P&amp;L is absorbed by the pad's reserve; on the simulated ledger this is bookkeeping, on-chain it is the contract's reserve.</p>
+  <p>Demand moves the curve. The stock moves the multiplier. A coin paired to BYD at 79.05 HKD trades at 1.10× its curve when BYD prints 86.96. The index P&amp;L is absorbed by the pad's reserve.</p>
 
   <h2><span class="zi">三</span>Sessions</h2>
   <p>HKEX 09:30–12:00 and 13:00–16:00 HKT. Shanghai and Shenzhen 09:30–11:30 and 13:00–15:00 CST. US 09:30–16:00 ET. Outside a session the underlying's last print holds, so the index is frozen and the coin trades on its curve alone. At the open the index jumps to the new print and every paired coin gaps with it. The board labels each name 开盘 (open), 午休 (lunch) or 收盘 (closed).</p>
@@ -23,22 +23,33 @@ sell: tokens in → curve → usdg_out × index × 0.99</div>
   <p>One percent of every coin's supply is set aside in 88 envelopes. The first 88 distinct buyers each open one on their first buy. The amount is a hash-seeded draw between 0.3× and 2× of an even split; every eighth buyer's envelope is multiplied by 1.88. Envelopes are credited on top of the purchase and appear on the coin's page and on the buyer's wallet. Envelope tokens are ordinary tokens.</p>
 
   <h2><span class="zi">五</span>Fee &amp; $HONG</h2>
-  <p>Every buy and sell pays 1%. Half buys <b>$HONG</b> at market and burns it; with <code>HONG_MINT</code> and a treasury key set the burn executes each period, until then it is a ledger with the USDG amount and the $HONG it buys at the DexScreener price. The other half funds the envelope pool of future launches. $HONG has no other function. It is not yield.</p>
+  <p>Every buy and sell pays 1%. Half buys <b>$HONG</b> at market and burns it; with <code>HONG_MINT</code> and a treasury key set the burn executes each period; the board shows the USDG amount and the $HONG it buys at the DexScreener price. The other half funds the envelope pool of future launches. $HONG has no other function. It is not yield.</p>
 
   <h2><span class="zi">六</span>Graduation · 毕业</h2>
-  <p>When a coin's net raised reaches <b>8,888 USDG</b> the curve closes and the coin is marked listed. On-chain, the raised USDG and remaining supply seed a DEX pool at the closing price and the LP is locked; on the simulated ledger the coin is frozen at its last price and shown with the 上市 seal. Duplicate tickers are banned across the pad forever.</p>
+  <p>When a coin's net raised reaches <b>8,888 USDG</b> the curve closes and the coin is marked listed. The raised USDG and remaining supply seed a DEX pool at the closing price and the LP is locked; the coin is frozen at its last curve price and shown with the 上市 seal. Duplicate tickers are banned across the pad forever.</p>
 
-  <h2><span class="zi">七</span>API</h2>
+  <h2><span class="zi">七</span>Ledgers · Practice and Live</h2>
+  <ul>
+  <li><b>Practice.</b> Every wallet receives 1,000 USDG on connect. It trades the practice board only.</li>
+  <li><b>Live.</b> Funded with USDG (<code>0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168</code>, 6 decimals) sent on Robinhood Chain to the treasury address shown on the board. The server reads the transaction receipt and requires a USDG <code>Transfer</code> event from your wallet to the treasury; the credited amount is the event's value. Minimum 10 USDG. Each hash is credited once and kept on the ledger with its block.</li>
+  <li><b>Boards.</b> Coins carry the mode they were launched in. Live coins trade only with live USDG, practice coins only with practice USDG, so the two never mix.</li>
+  <li><b>Treasury.</b> A wallet on Robinhood Chain, published on the board. Its USDG balance is read every 30 seconds via <code>balanceOf</code> and shown with the block number of the read.</li>
+  <li><b>Withdraw.</b> Request any amount up to your free live balance. It leaves the ledger immediately and joins the payout queue with an id. The treasury pays the queue in USDG to the depositing wallet and records the payout transaction hash on the request.</li>
+  </ul>
+
+  <h2><span class="zi">八</span>API</h2>
   <table><thead><tr><th>Route</th><th>Returns</th></tr></thead><tbody>
   <tr><td><code>GET /api/tape</code></td><td>the 18 underlyings: print, day change, session, paired coins</td></tr>
   <tr><td><code>GET /api/board</code> · <code>/api/coin?id=</code></td><td>all coins with live index / one coin with trades, envelopes, holders</td></tr>
   <tr><td><code>GET /api/quote?id=&side=&amount=</code></td><td>tokens out / USDG out including fee and index</td></tr>
   <tr><td><code>POST /api/launch</code> {wallet, stock, name, ticker, emoji, desc}</td><td>pair a coin; base locked at the current print</td></tr>
-  <tr><td><code>POST /api/buy</code> · <code>/api/sell</code> {wallet, id, amount}</td><td>trade on the curve; envelope on first buy if any remain</td></tr>
-  <tr><td><code>GET /api/me?wallet=</code></td><td>paper USDG, bags, envelopes, launches</td></tr>
+  <tr><td><code>POST /api/buy</code> · <code>/api/sell</code> {wallet, mode, id, amount}</td><td>trade on the curve; envelope on first buy if any remain</td></tr>
+  <tr><td><code>GET /api/me?wallet=</code></td><td>practice and live USDG, bags by mode, withdrawal queue, envelopes, launches</td></tr>
+  <tr><td><code>GET /api/board?mode=practice|live</code> · <code>/api/live</code></td><td>the board for a mode · treasury address, balance, block, totals</td></tr>
+  <tr><td><code>POST /api/deposit</code> {wallet, tx} · <code>/api/withdraw</code> {wallet, amount}</td><td>credit a verified USDG transfer · queue a payout</td></tr>
   <tr><td><code>WS /</code></td><td>launch · trade · listed events</td></tr></tbody></table>
 
-  <h2><span class="zi">八</span>What this is not</h2>
-  <p>Coins are not shares. Holding a Moutai-coin gives no claim on Kweichow Moutai. Ledgers are simulated; each wallet starts with 1,000 paper USDG. Prices are real. Nothing here is a security, investment advice, or a promise. Paired coins can lose value from the curve, from the underlying, or both.</p>
-  <div class="foot"><span>hong.fun 红 · rules rev. 1</span><a href="/board">The Board →</a></div>
+  <h2><span class="zi">九</span>Risk</h2>
+  <p>Coins are indexed to a stock, not shares of it. Holding a Moutai-coin gives no claim on Kweichow Moutai. A paired coin can lose value from the curve, from the underlying, or both. Use Practice to learn the pad before funding Live, and size positions you are comfortable holding.</p>
+  <div class="foot"><span>hong.fun 红 · rules rev. 2</span><a href="/board">The Board →</a></div>
 </div></body></html>

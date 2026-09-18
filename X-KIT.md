@@ -1,6 +1,6 @@
 # hong.fun 红 — X kit
 
-**Handle:** @hongdotfun (placeholder in site links) · **Site:** hongfun.xyz · **Ticker:** $HONG · **Chain:** Robinhood Chain
+**Handle:** @HongFunPad · **Site:** hongfun.xyz · **Ticker:** $HONG · **Chain:** Robinhood Chain
 **Look:** warm paper #f7efe0 · vermilion #c8102e · gold #c99a2e · Noto Serif SC display · IBM Plex Mono data · red = up, green = down
 
 ## Profile assets (brand/)
