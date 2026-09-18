@@ -115,7 +115,7 @@ hongfun.xyz
 ```
 22 seconds, the whole pad:
 
-pick BYD → launch a coin paired to it → base locks at the live print → first buy opens a red envelope → BYD moves +3.1%, your curve moves +3.1% → 1% fee, half buys $HONG and burns it → 8,888 USDG raised, it graduates.
+pick BYD → launch a coin paired to it → base locks at the print → first buy opens a red envelope → BYD +3.1%, your curve +3.1% → 1% fee, half buys $HONG and burns it → 8,888 USDG raised, it graduates.
 
 Every trade burns $HONG. Red is up.
 
