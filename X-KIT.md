@@ -89,7 +89,7 @@ hong.fun: a curve paired to China.
 ✓ Tencent to Moutai, HK to Shenzhen
 ✓ red is up
 
-$HONG · Robinhood Chain · CA soon 🔔
+$HONG · CA 0x7e76856b57cc298bbadf69a4b6a93a02fca259d7
 hongfun.xyz
 ```
 

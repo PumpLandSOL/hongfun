@@ -9,7 +9,7 @@ const http = require('http'), fs = require('fs'), path = require('path'), crypto
 const PORT = +(process.env.PORT || 8202);
 const ROOT = path.join(__dirname, '..'), CLIENT = path.join(ROOT, 'client');
 const DATA_PATH = process.env.DATA_PATH || path.join(ROOT, 'data.json');
-const MINT = process.env.HONG_MINT || '';
+const MINT = process.env.HONG_MINT || '0x7e76856b57cc298bbadf69a4b6a93a02fca259d7';
 // ---- LIVE ledger: real USDG on Robinhood Chain ----
 const CHAIN = { id: 4663, hex: '0x1237', name: 'Robinhood Chain', rpc: process.env.CHAIN_RPC || 'https://rpc.mainnet.chain.robinhood.com', explorer: 'https://explorer.mainnet.chain.robinhood.com' };
 const USDG = { addr: (process.env.USDG_ADDR || '0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168').toLowerCase(), dec: 6 };
